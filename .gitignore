@@ -1,0 +1,15 @@
+# Ignore environment variable file
+.env
+
+# Ignore Django-related files
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore macOS system files
+.DS_Store
