@@ -7,6 +7,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework_simplejwt.exceptions import TokenError
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UserRegistrationAPIView(GenericAPIView):
     """
@@ -99,3 +103,34 @@ class UserInfoAPIView(RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+class UserLogoutAPIView(GenericAPIView):
+    """
+    Handles user logout and token blacklist.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserLogoutSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  # Validate the input
+
+        refresh_token = serializer.validated_data['refresh']
+        
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            logger.info(f"User {request.user.id} logged out and token blacklisted.")
+            return Response({"detail": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
+        except TokenError as e:
+            logger.error(f"Token blacklisting error: {str(e)}")
+            return Response(
+                {"detail": "Invalid token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
