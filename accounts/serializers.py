@@ -40,3 +40,12 @@ class UserLoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Incorrect credentials")
+    
+
+
+class UserLogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(required=True)
+
+    def validate_refresh(self, value):
+        # Here, you could add any additional validation for the refresh token if necessary
+        return value
